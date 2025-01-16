@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/layer5io/meshkit/database"
 )
 
@@ -19,6 +19,7 @@ const (
 type Filter interface {
 	Create(map[string]interface{})
 	Get(db *database.Handler) (entities []Entity, count int64, unique int, err error)
+	GetById(db *database.Handler) (entity Entity, err error)
 }
 
 type Entity interface {
@@ -26,6 +27,7 @@ type Entity interface {
 	// ComponentDefinitions and PolicyDefinitions are examples of entities
 	Type() EntityType
 	GetEntityDetail() string
+	GenerateID() (uuid.UUID, error)
 	GetID() uuid.UUID
 	Create(db *database.Handler, hostID uuid.UUID) (entityID uuid.UUID, err error)
 }

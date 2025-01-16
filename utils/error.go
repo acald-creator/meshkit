@@ -36,10 +36,38 @@ var (
 	ErrCreateDirCode                 = "meshkit-11182"
 	// ErrDecodeYamlCode represents the error which is generated when yaml
 	// decode process fails
-	ErrDecodeYamlCode   = "meshkit-11183"
-	ErrExtractTarXZCode = "meshkit-11184"
-	ErrExtractZipCode   = "meshkit-11185"
-	ErrReadDirCode      = "meshkit-11186"
+	ErrDecodeYamlCode           = "meshkit-11183"
+	ErrExtractTarXZCode         = "meshkit-11184"
+	ErrExtractZipCode           = "meshkit-11185"
+	ErrReadDirCode              = "meshkit-11186"
+	ErrInvalidSchemaVersionCode = "meshkit-11273"
+	ErrFileWalkDirCode          = "meshkit-11274"
+	ErrRelPathCode              = "meshkit-11275"
+	ErrCopyFileCode             = "meshkit-11276"
+	ErrCloseFileCode            = "meshkit-11277"
+	ErrCompressToTarGZCode      = "meshkit-11248"
+
+	ErrConvertToByteCode = "meshkit-11187"
+
+	ErrOpenFileCode = "meshkit-11278"
+)
+var (
+	ErrExtractType = errors.New(
+		ErrUnmarshalTypeCode,
+		errors.Alert,
+		[]string{"Invalid extraction type"},
+		[]string{"The file type to be extracted is neither `tar.gz` nor `zip`."},
+		[]string{"Invalid object format. The file is not of type `zip` or `tar.gz`."},
+		[]string{"Make sure to check that the file type is `zip` or `tar.gz`."},
+	)
+	ErrInvalidSchemaVersion = errors.New(
+		ErrInvalidSchemaVersionCode,
+		errors.Alert,
+		[]string{"Invalid schema version"},
+		[]string{"The `schemaVersion` key is either empty or has an incorrect value."},
+		[]string{"The schema is not of type 'relationship', 'component', 'model' , 'policy'."},
+		[]string{"Verify that `schemaVersion` key should be either `relationships.meshery.io`, `component.meshery.io`, `model.meshery.io` or `policy.meshery.io`."},
+	)
 )
 
 func ErrCueLookup(err error) error {
@@ -126,6 +154,10 @@ func ErrCreateDir(err error, filepath string) error {
 	return errors.New(ErrCreateDirCode, errors.Alert, []string{fmt.Sprintf("error creating directory at %s", filepath)}, []string{err.Error()}, []string{"invalid path provided", "insufficient permissions"}, []string{"provide a valid path", "retry by using an absolute path", "check for sufficient permissions for the user"})
 }
 
+func ErrConvertToByte(err error) error {
+	return errors.New(ErrConvertToByteCode, errors.Alert, []string{("error converting data to []byte")}, []string{err.Error()}, []string{"Unsupported data types", "invalid configuration data", "failed serialization of data"}, []string{"check for any custom types in the data that might not be serializable", "Verify that the data type being passed is valid for conversion to []byte"})
+}
+
 func ErrGettingLatestReleaseTag(err error) error {
 	return errors.New(
 		ErrGettingLatestReleaseTagCode,
@@ -146,6 +178,11 @@ func ErrDecodeYaml(err error) error {
 	return errors.New(ErrDecodeYamlCode, errors.Alert, []string{"Error occurred while decoding YAML"}, []string{err.Error()}, []string{}, []string{})
 }
 
+// ErrCompressTar is the error for zipping a file into targz
+func ErrCompressToTarGZ(err error, path string) error {
+	return errors.New(ErrCompressToTarGZCode, errors.Alert, []string{fmt.Sprintf("Error while compressing file %s", path)}, []string{err.Error()}, []string{"The file might be corrupt", "Insufficient permissions to read the file"}, []string{"Verify sufficient read permissions"})
+}
+
 // ErrExtractTarXVZ is the error for unzipping the targz file
 func ErrExtractTarXZ(err error, path string) error {
 	return errors.New(ErrExtractTarXZCode, errors.Alert, []string{fmt.Sprintf("Error while extracting file at %s", path)}, []string{err.Error()}, []string{"The gzip might be corrupt"}, []string{})
@@ -158,4 +195,49 @@ func ErrExtractZip(err error, path string) error {
 
 func ErrReadDir(err error, dirPath string) error {
 	return errors.New(ErrReadDirCode, errors.Alert, []string{"error reading directory"}, []string{err.Error()}, []string{fmt.Sprintf("Directory does not exist at the location %s", dirPath), "Insufficient permissions"}, []string{"Verify that directory exist at the provided location", "Verify sufficient directory read permission."})
+}
+
+func ErrFileWalkDir(err error, path string) error {
+	return errors.New(
+		ErrFileWalkDirCode,
+		errors.Alert,
+		[]string{"Error while walking through directory"},
+		[]string{err.Error()},
+		[]string{fmt.Sprintf("The directory %s does not exist.", path)},
+		[]string{"Verify that the correct directory path is provided."},
+	)
+}
+func ErrRelPath(err error, path string) error {
+	return errors.New(
+		ErrRelPathCode,
+		errors.Alert,
+		[]string{"Error determining relative path"},
+		[]string{err.Error()},
+		[]string{("The provided directory path is incorrect."), "The user might not have sufficient permission."},
+		[]string{"Verify the provided directory path is correct and if the user has sufficent permission."},
+	)
+}
+func ErrCopyFile(err error) error {
+	return errors.New(
+		ErrCopyFileCode,
+		errors.Alert,
+		[]string{"Error copying file"},
+		[]string{err.Error()},
+		[]string{("The file might not be accessible or the source and destination files are the same."), "The file might be corrupted."},
+		[]string{("Ensure the source and destination files are accessible and try again."), "Verify the integrity of the file and try again."},
+	)
+}
+
+func ErrCloseFile(err error) error {
+	return errors.New(
+		ErrCloseFileCode,
+		errors.Alert,
+		[]string{"Error closing file"},
+		[]string{err.Error()},
+		[]string{("Disk space might be full or the file might be corrupted."), "The user might not have sufficient permission."},
+		[]string{"Check for issues with file permissions or disk space and try again."},
+	)
+}
+func ErrOpenFile(file string) error {
+	return errors.New(ErrOpenFileCode, errors.Alert, []string{"unable to open file: ", file}, []string{}, []string{"The file does not exist in the location"}, []string{"Make sure to upload the correct file"})
 }
